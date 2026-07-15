@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyGymProgress</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Mi espacio de gym</p>
+          <h1>MyGymProgress</h1>
+          <p class="subtitle">
+            Aquí voy guardando cada rutina con los ejercicios, el peso, las repeticiones y cómo me ha ido.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel journal-panel">
+        <div class="journal-header">
+          <div>
+            <div class="routine-name">Tu espacio</div>
+            <div class="routine-subtitle">Escribe lo que quieras recordar: el objetivo del día, cómo te sientes o una nota rápida.</div>
+          </div>
+          <div class="note-label">Se guarda solo</div>
+        </div>
+        <textarea id="journal-textarea" placeholder="Ej. Hoy me siento con más fuerza en el press; intentar bajar un poco el peso..." rows="6"></textarea>
+      </section>
+
+      <section class="panel">
+        <form id="routine-form" class="routine-form">
+          <div class="field-group">
+            <label for="routine-name">Nombre de la rutina</label>
+            <input id="routine-name" name="routineName" type="text" placeholder="Pecho / Empuje" required />
+          </div>
+          <button type="submit">Crear rutina</button>
+        </form>
+      </section>
+
+      <section id="gallery-panel" class="panel">
+        <div class="section-header">
+          <h2>Mis rutinas</h2>
+          <button id="clear-all" class="secondary">Borrar todo</button>
+        </div>
+        <div id="empty-state" class="empty-state">Todavía no hay rutinas. Crea una para empezar.</div>
+        <div id="routine-list" class="routine-grid"></div>
+      </section>
+
+      <section id="routine-detail" class="panel hidden">
+        <div class="section-header detail-header">
+          <button id="back-to-gallery" class="ghost-btn">Volver</button>
+          <div>
+            <h2 id="detail-title">Rutina</h2>
+            <p id="detail-subtitle" class="routine-subtitle">Ejercicios y progreso</p>
+          </div>
+          <button id="delete-routine" class="secondary">Eliminar rutina</button>
+        </div>
+        <div id="detail-content"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer">by agus</footer>
+    <script src="app.js"></script>
+  </body>
+</html>
