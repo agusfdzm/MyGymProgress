@@ -41,6 +41,10 @@
             <label for="routine-name">Nombre de la rutina</label>
             <input id="routine-name" name="routineName" type="text" placeholder="Pecho / Empuje" required />
           </div>
+          <div class="field-group">
+            <label for="routine-description">Objetivo o enfoque</label>
+            <textarea id="routine-description" name="routineDescription" rows="3" placeholder="Ej. Aumentar fuerza en press y trabajar volumen"></textarea>
+          </div>
           <button type="submit">Crear rutina</button>
         </form>
       </section>
@@ -61,8 +65,26 @@
             <h2 id="detail-title">Rutina</h2>
             <p id="detail-subtitle" class="routine-subtitle">Ejercicios y progreso</p>
           </div>
-          <button id="delete-routine" class="secondary">Eliminar rutina</button>
+          <div class="detail-actions">
+            <button id="edit-routine" class="secondary">Editar</button>
+            <button id="delete-routine" class="secondary">Eliminar rutina</button>
+          </div>
         </div>
+        <div id="detail-summary" class="detail-summary"></div>
+        <form id="routine-edit-form" class="routine-form detail-editor-form hidden">
+          <div class="field-group">
+            <label for="edit-routine-name">Nombre de la rutina</label>
+            <input id="edit-routine-name" name="routineName" type="text" required />
+          </div>
+          <div class="field-group">
+            <label for="edit-routine-description">Objetivo o enfoque</label>
+            <textarea id="edit-routine-description" name="routineDescription" rows="3" placeholder="Actualiza el objetivo o enfoque"></textarea>
+          </div>
+          <div class="button-row">
+            <button type="submit">Guardar cambios</button>
+            <button type="button" id="cancel-edit-routine" class="secondary">Cancelar</button>
+          </div>
+        </form>
         <div id="detail-content"></div>
       </section>
     </main>

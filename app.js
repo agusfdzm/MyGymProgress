@@ -12,6 +12,11 @@ const backToGallery = document.getElementById('back-to-gallery');
 const deleteRoutineButton = document.getElementById('delete-routine');
 const emptyState = document.getElementById('empty-state');
 const clearAllButton = document.getElementById('clear-all');
+const editRoutineButton = document.getElementById('edit-routine');
+const routineEditForm = document.getElementById('routine-edit-form');
+const cancelEditRoutineButton = document.getElementById('cancel-edit-routine');
+const detailSummary = document.getElementById('detail-summary');
+const detailEditor = document.getElementById('routine-edit-form');
 
 let routines = loadRoutines();
 let selectedRoutineId = null;
@@ -65,20 +70,69 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function getRoutineById(routineId) {
+  return routines.find((item) => item.id === routineId);
+}
+
 function getRoutineSummary(routine) {
   const allSessions = routine.exercises.flatMap((exercise) =>
     exercise.sessions.map((session) => ({ ...session, exercise: exercise.name }))
   );
 
-  const latest = allSessions.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+  const latest = [...allSessions].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
   const completedExercises = routine.exercises.filter((exercise) => exercise.sessions.length > 0).length;
+  const totalSessions = allSessions.length;
+  const totalVolume = allSessions.reduce((sum, session) => sum + session.weight * session.reps, 0);
+  const bestSet = [...allSessions].sort((a, b) => b.weight * b.reps - a.weight * a.reps)[0];
 
   return {
     lastSession: latest
-      ? `${latest.exercise} ${latest.weight}kg · ${latest.reps} reps · RIR ${latest.rir}`
+      ? `${latest.exercise} · ${latest.weight}kg · ${latest.reps} reps · RIR ${latest.rir}`
       : 'Todavía no hay sesiones',
-    stats: `${routine.exercises.length} ejercicio${routine.exercises.length === 1 ? '' : 's'} · ${completedExercises} con historial`
+    stats: `${routine.exercises.length} ejercicio${routine.exercises.length === 1 ? '' : 's'} · ${completedExercises} con historial`,
+    sessionsLabel: `${totalSessions} sesión${totalSessions === 1 ? '' : 'es'}`,
+    volumeLabel: totalVolume ? `Volumen ${totalVolume} kg·reps` : 'Sin volumen',
+    bestLabel: bestSet ? `Mejor set ${bestSet.weight}kg × ${bestSet.reps}` : 'Sin datos'
   };
+}
+
+function getExerciseStats(exercise) {
+  const sessions = [...exercise.sessions].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const latest = sessions[sessions.length - 1];
+  const totalVolume = sessions.reduce((sum, session) => sum + session.weight * session.reps, 0);
+  const bestSet = sessions.reduce(
+    (best, session) => {
+      const currentValue = session.weight * session.reps;
+      return currentValue > best.value ? { value: currentValue, label: `${session.weight}kg × ${session.reps}` } : best;
+    },
+    { value: 0, label: 'Sin datos' }
+  );
+
+  return {
+    sessions,
+    latest,
+    latestText: latest ? `${latest.weight}kg · ${latest.reps} reps · RIR ${latest.rir}` : 'Sin sesiones aún',
+    totalVolume,
+    bestSet,
+    historyLabel: `${sessions.length} sesión${sessions.length === 1 ? '' : 'es'}`
+  };
+}
+
+function showRoutineEditor() {
+  const routine = getRoutineById(selectedRoutineId);
+  if (!routine) return;
+
+  routineEditForm.querySelector('[name="routineName"]').value = routine.name;
+  routineEditForm.querySelector('[name="routineDescription"]').value = routine.description || '';
+  detailEditor.classList.remove('hidden');
+  detailContent.classList.add('hidden');
+  detailSummary.classList.add('hidden');
+}
+
+function hideRoutineEditor() {
+  detailEditor.classList.add('hidden');
+  detailContent.classList.remove('hidden');
+  detailSummary.classList.remove('hidden');
 }
 
 function renderRoutines() {
@@ -101,6 +155,11 @@ function renderRoutines() {
               <div class="routine-subtitle">${escapeHtml(summary.stats)}</div>
             </div>
           </div>
+          <div class="routine-metrics">
+            <span class="metric-pill">${escapeHtml(summary.sessionsLabel)}</span>
+            <span class="metric-pill">${escapeHtml(summary.volumeLabel)}</span>
+            <span class="metric-pill">${escapeHtml(summary.bestLabel)}</span>
+          </div>
           <div class="detail-meta">${escapeHtml(summary.lastSession)}</div>
         </article>
       `;
@@ -109,27 +168,43 @@ function renderRoutines() {
 }
 
 function renderDetail() {
-  const routine = routines.find((item) => item.id === selectedRoutineId);
+  const routine = getRoutineById(selectedRoutineId);
   if (!routine) {
     showGallery();
     return;
   }
 
+  const summary = getRoutineSummary(routine);
+
   detailTitle.textContent = routine.name;
   detailSubtitle.textContent = `${routine.exercises.length} ejercicio${routine.exercises.length === 1 ? '' : 's'} · ${routine.exercises.filter((exercise) => exercise.sessions.length > 0).length} con historial`;
   deleteRoutineButton.dataset.routineId = routine.id;
+  editRoutineButton.dataset.routineId = routine.id;
+
+  detailSummary.innerHTML = `
+    <div class="summary-grid">
+      <div class="summary-card">
+        <span>Sesiones</span>
+        <strong>${escapeHtml(summary.sessionsLabel)}</strong>
+      </div>
+      <div class="summary-card">
+        <span>Volumen total</span>
+        <strong>${escapeHtml(summary.volumeLabel)}</strong>
+      </div>
+      <div class="summary-card">
+        <span>Mejor set</span>
+        <strong>${escapeHtml(summary.bestLabel)}</strong>
+      </div>
+    </div>
+    ${routine.description ? `<p class="detail-description">Objetivo: ${escapeHtml(routine.description)}</p>` : '<p class="detail-description">Aún no has definido un objetivo para esta rutina.</p>'}
+  `;
 
   const exercisesMarkup = routine.exercises.length
     ? routine.exercises
         .map((exercise) => {
-          const sessions = [...exercise.sessions].sort((a, b) => new Date(a.date) - new Date(b.date));
-          const latest = sessions[sessions.length - 1];
-          const latestText = latest
-            ? `${latest.weight}kg · ${latest.reps} reps · RIR ${latest.rir}`
-            : 'Sin sesiones aún';
-
-          const historyMarkup = sessions.length
-            ? sessions
+          const exerciseStats = getExerciseStats(exercise);
+          const historyMarkup = exerciseStats.sessions.length
+            ? exerciseStats.sessions
                 .map(
                   (session) =>
                     `<li>${formatDate(session.date)} · ${session.weight} kg · ${session.reps} reps · RIR ${session.rir}</li>`
@@ -142,24 +217,30 @@ function renderDetail() {
               <div class="exercise-head">
                 <div>
                   <div class="exercise-name">${escapeHtml(exercise.name)}</div>
-                  <div class="exercise-current">${escapeHtml(latestText)}</div>
+                  <div class="exercise-current">${escapeHtml(exerciseStats.latestText)}</div>
                 </div>
                 <button class="ghost-btn danger" data-action="delete-exercise" data-routine-id="${routine.id}" data-exercise-id="${exercise.id}">Borrar</button>
+              </div>
+
+              <div class="exercise-stats">
+                <span>${escapeHtml(exerciseStats.historyLabel)}</span>
+                <span>${escapeHtml(exerciseStats.bestSet.label)}</span>
+                <span>${escapeHtml(exerciseStats.totalVolume ? `Volumen ${exerciseStats.totalVolume} kg·reps` : 'Sin volumen')}</span>
               </div>
 
               <form class="session-form" data-action="add-session" data-routine-id="${routine.id}" data-exercise-id="${exercise.id}">
                 <div class="field-row compact">
                   <div class="field-group">
                     <label>Kg</label>
-                    <input name="weight" type="number" min="0" step="0.5" value="${latest ? latest.weight : 20}" required />
+                    <input name="weight" type="number" min="0" step="0.5" value="${exerciseStats.latest ? exerciseStats.latest.weight : 20}" required />
                   </div>
                   <div class="field-group">
                     <label>Reps</label>
-                    <input name="reps" type="number" min="1" step="1" value="${latest ? latest.reps : 8}" required />
+                    <input name="reps" type="number" min="1" step="1" value="${exerciseStats.latest ? exerciseStats.latest.reps : 8}" required />
                   </div>
                   <div class="field-group">
                     <label>RIR</label>
-                    <input name="rir" type="number" min="0" step="1" value="${latest ? latest.rir : 2}" required />
+                    <input name="rir" type="number" min="0" step="1" value="${exerciseStats.latest ? exerciseStats.latest.rir : 2}" required />
                   </div>
                 </div>
                 <button type="submit">Guardar</button>
@@ -185,12 +266,15 @@ function renderDetail() {
       <button type="submit">Añadir</button>
     </form>
   `;
+
+  hideRoutineEditor();
 }
 
 function showGallery() {
   selectedRoutineId = null;
   galleryPanel.classList.remove('hidden');
   detailSection.classList.add('hidden');
+  hideRoutineEditor();
   renderRoutines();
 }
 
@@ -205,11 +289,14 @@ routineForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(routineForm);
   const routineName = String(formData.get('routineName') || '').trim();
+  const routineDescription = String(formData.get('routineDescription') || '').trim();
   if (!routineName) return;
 
   routines.unshift({
     id: createId(),
     name: routineName,
+    description: routineDescription,
+    createdAt: new Date().toISOString(),
     exercises: []
   });
 
@@ -289,6 +376,30 @@ detailContent.addEventListener('click', (event) => {
     saveRoutines();
     renderDetail();
   }
+});
+
+editRoutineButton.addEventListener('click', () => {
+  showRoutineEditor();
+});
+
+routineEditForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const routine = getRoutineById(selectedRoutineId);
+  if (!routine) return;
+
+  const formData = new FormData(routineEditForm);
+  const routineName = String(formData.get('routineName') || '').trim();
+  const routineDescription = String(formData.get('routineDescription') || '').trim();
+  if (!routineName) return;
+
+  routine.name = routineName;
+  routine.description = routineDescription;
+  saveRoutines();
+  renderDetail();
+});
+
+cancelEditRoutineButton.addEventListener('click', () => {
+  hideRoutineEditor();
 });
 
 deleteRoutineButton.addEventListener('click', () => {

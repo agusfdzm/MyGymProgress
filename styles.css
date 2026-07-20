@@ -172,6 +172,59 @@ button.secondary {
   margin-bottom: 16px;
 }
 
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-summary {
+  margin-bottom: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 2px;
+}
+
+.summary-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.summary-card strong {
+  font-size: 1rem;
+}
+
+.detail-description {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.detail-editor-form {
+  margin-bottom: 14px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .empty-state {
   color: var(--muted);
   text-align: center;
@@ -194,6 +247,20 @@ button.secondary {
   min-height: 170px;
   cursor: pointer;
   transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.routine-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metric-pill {
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .routine-card:hover {
@@ -253,6 +320,20 @@ button.secondary {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+}
+
+.exercise-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exercise-stats span {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .exercise-name {
@@ -317,5 +398,9 @@ button.secondary {
   .section-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
   }
 }
